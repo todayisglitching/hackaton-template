@@ -1,0 +1,45 @@
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status--single {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.status-hint {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.status-temp {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-temp__label {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.status-temp__value {
+  font-size: 1.2rem;
+}
+
+.status-temp__bar {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.status-temp__fill {
+  height: 100%;
+  background: var(--grad);
+  transition: width 0.25s ease;
+}
