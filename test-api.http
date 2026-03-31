@@ -1,0 +1,36 @@
+### Тестовые запросы к API
+
+### Регистрация пользователя
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+
+{
+  "email": "test@example.com",
+  "password": "MyStr0ng#Pass!"
+}
+
+### Вход пользователя (рабочий пароль)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+
+{
+  "email": "test@example.com",
+  "password": "MyStr0ng#Pass!"
+}
+
+### Вход пользователя (НЕРАБОЧИЙ пароль - содержит последовательность)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+
+{
+  "email": "test@example.com",
+  "password": "q3dm131313Z^!"
+}
+
+### Получение информации о пользователе
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer {{token}}
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36

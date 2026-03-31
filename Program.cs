@@ -1,121 +1,74 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using testASP.Configuration;
 using testASP.Infrastructure;
 using testASP.Models;
 using testASP.Services;
-using testASP.Services.Interfaces;
+using testASP.NoSqlDb;
 
+// Включаем улучшенные метаданные для Swagger/OpenAPI
 AppContext.SetSwitch("Microsoft.AspNetCore.Mvc.ApiExplorer.IsEnhancedModelMetadataSupported", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// -------------------------------
-// Configuration
-// -------------------------------
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-    ?? "Rostelecom_SmartHome_2026_Ultra_Secret"; // TODO: move to user secrets or env in prod
+// Регистрация конфигурации приложения
+builder.Services.Configure<AppSettings>(builder.Configuration);
 
-var jwtKey = Encoding.ASCII.GetBytes(jwtSecret);
-var contentDist = Path.Combine(builder.Environment.ContentRootPath, "Vite", "dist");
-var binDist = Path.Combine(AppContext.BaseDirectory, "Vite", "dist");
-var webRoot = Directory.Exists(contentDist) ? contentDist : binDist;
-var indexFile = Path.Combine(webRoot, "index.html");
-var spaReady = Directory.Exists(webRoot) && File.Exists(indexFile);
-PhysicalFileProvider? webRootProvider = spaReady ? new PhysicalFileProvider(webRoot) : null;
+// Регистрация SPA конфигурации
+builder.Services.AddSingleton<ISpaConfiguration>(provider => 
+    new SpaConfiguration(
+        builder.Environment.ContentRootPath,
+        AppContext.BaseDirectory));
 
-builder.Services.AddControllers();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(jwtKey),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
-
-builder.Services.AddAuthorization();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("VitePolicy", policy =>
-    {
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
-
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonContext.Default));
-
-builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
-{
-    options.JsonSerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonContext.Default);
-});
-
-builder.Services.AddSingleton(new JwtTokenService(jwtSecret));
-builder.Services.AddSingleton<UserStore>();
-builder.Services.AddSingleton<DeviceStore>();
-builder.Services.AddSingleton<RefreshTokenStore>();
-builder.Services.AddSingleton<WsConnectionManager>();
-
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IDeviceService, DeviceService>();
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(5000);
-    options.ListenAnyIP(5001, listenOptions => listenOptions.UseHttps());
-});
+// Регистрация всех сервисов приложения
+builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddScoped<DatabaseHealthService>();
 
 var app = builder.Build();
 
-if (spaReady && webRootProvider != null)
+// Проверка состояния базы данных и инициализация при необходимости
+using (var scope = app.Services.CreateScope())
 {
-    app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = webRootProvider });
-    app.UseStaticFiles(new StaticFileOptions { FileProvider = webRootProvider });
-}
+    var healthService = scope.ServiceProvider.GetRequiredService<DatabaseHealthService>();
+    var healthStatus = await healthService.CheckHealthAsync();
+    
+    app.Logger.LogInformation("Статус базы данных: {Status} - {Message}", 
+        healthStatus.Status, healthStatus.Message);
 
-app.UseCors("VitePolicy");
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseWebSockets();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/api"))
+    if (!healthStatus.IsHealthy)
     {
-        app.Logger.LogInformation("API {Method} {Path}", context.Request.Method, context.Request.Path);
+        // База данных не готова - выполняем инициализацию
+        var dbContext = scope.ServiceProvider.GetRequiredService<NoSqlDbContext>();
+        
+        if (!healthStatus.TablesExist)
+        {
+            app.Logger.LogInformation("Создание таблиц базы данных...");
+            dbContext.Database.EnsureCreated();
+        }
+
+        if (!healthStatus.CollectionsExist)
+        {
+            app.Logger.LogInformation("Инициализация системных коллекций...");
+            var noSqlService = scope.ServiceProvider.GetRequiredService<NoSqlService>();
+            await noSqlService.InitializeSystemCollectionsAsync();
+        }
+
+        // Повторная проверка после инициализации
+        var finalStatus = await healthService.CheckHealthAsync();
+        app.Logger.LogInformation("Итоговый статус базы данных: {Status} - {Message}", 
+            finalStatus.Status, finalStatus.Message);
     }
-    await next();
-});
-
-app.MapControllers();
-
-// Все остальные запросы в /api/* -> 404
-app.Map("/api/{**rest}", () => Results.NotFound());
-
-// -------------------------------
-// SPA fallback (non-API)
-// -------------------------------
-if (spaReady)
-{
-    app.MapFallbackToFile("index.html", new StaticFileOptions { FileProvider = webRootProvider! });
-}
-else
-{
-    app.MapFallback(async context =>
+    else
     {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        await context.Response.WriteAsync("SPA build not found. Run Vite build to generate /Vite/dist.");
-    });
+        app.Logger.LogInformation("База данных полностью готова к работе");
+    }
+
+    // Вывод статистики базы данных
+    var stats = await healthService.GetStatsAsync();
+    app.Logger.LogInformation("Статистика БД: {Collections} коллекций, {Fields} полей, {Documents} документов, {Users} пользователей, размер: {Size}", 
+        stats.CollectionCount, stats.FieldCount, stats.DocumentCount, stats.UserCount, stats.FormattedDatabaseSize);
 }
+
+// Конфигурация middleware pipeline и эндпоинтов
+app.ConfigureApplication(builder.Configuration);
 
 app.Run();

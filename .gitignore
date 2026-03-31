@@ -1,5 +1,122 @@
+## Ignore Visual Studio and Rider files
 bin/
 obj/
-/packages/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.xml
+*.csproj.user
+*.csproj.web.user
+
+## Rider specific files
 riderModule.iml
 /_ReSharper.Caches/
+/.idea/
+*.iml
+*.ipr
+*.iws
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+## MSTest - Test Results & Coverage Files
+TestResults/
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+
+## NuGet packages
+*.nupkg
+/packages/
+*.nuget.props
+*.nuget.targets
+
+## Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## Logs
+*.log
+logs/
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Mono auto generated files
+mono_crash.*
+
+## Windows image file caches
+Thumbs.db/
+ehthumbs.db
+
+## Folder config file
+Desktop.ini
+
+## Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+## Mac
+.DS_Store
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## Code coverage results
+coverage/
+*.coverage
+*.coveragexml
+
+## Test results
+TestResults/
+*.trx
+
+## Local configuration
+appsettings.Development.json
+appsettings.Local.json
+
+## Database files
+*.db
+*.sqlite
+*.sqlite3
+
+## Temporary files
+*.tmp
+*.temp
+
+## Security files
+*.pfx
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
+
+## Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+## Docker
+Dockerfile.local
+docker-compose.override.yml

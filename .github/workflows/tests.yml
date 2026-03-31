@@ -1,0 +1,194 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Run Unit Tests
+      run: dotnet test testASP.Tests --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test_results.trx" --collect:"XPlat Code Coverage"
+      
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          testASP.Tests/TestResults/**/*.trx
+          testASP.Tests/TestResults/**/coverage.cobertura.xml
+          
+    - name: Generate coverage report
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:testASP.Tests/TestResults/**/coverage.cobertura.xml -targetdir:./coverage -reporttypes:Html,Json,Summary
+        
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: ./coverage
+        
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = './coverage/Summary.json';
+          if (fs.existsSync(path)) {
+            const summary = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const coverage = summary.coverage;
+            const comment = `
+            ## 📊 Code Coverage Report
+            
+            | Metric | Coverage |
+            |--------|----------|
+            | Line Coverage | ${coverage.line.toFixed(2)}% |
+            | Branch Coverage | ${coverage.branch.toFixed(2)}% |
+            | Method Coverage | ${coverage.method.toFixed(2)}% |
+            | Class Coverage | ${coverage.class.toFixed(2)}% |
+            
+            [📈 View detailed coverage report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          }
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release
+      
+    - name: Run application
+      run: |
+        dotnet run --configuration Release &
+        sleep 30
+        curl -f http://localhost:5000/api/auth/me || echo "Application started"
+        
+    - name: Install k6
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+        
+    - name: Run performance tests
+      run: |
+        mkdir -p performance-tests
+        cat > performance-tests/load-test.js << 'EOF'
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+        
+        export let options = {
+          stages: [
+            { duration: '2m', target: 10 },
+            { duration: '2m', target: 10 },
+            { duration: '2m', target: 0 },
+          ],
+        };
+        
+        export default function () {
+          let response = http.post('http://localhost:5000/api/auth/login', {
+            email: 'test@example.com',
+            password: 'TestPassword123!'
+          });
+          
+          check(response, {
+            'status was 200': (r) => r.status == 200,
+            'response time < 500ms': (r) => r.timings.duration < 500,
+          });
+          
+          sleep(1);
+        }
+        EOF
+        
+        k6 run performance-tests/load-test.js --out json=performance-results.json
+        
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results
+        path: performance-results.json

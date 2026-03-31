@@ -5,12 +5,49 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <PublishAot>true</PublishAot>
+        <!-- Temporarily disable NativeAOT until EF Core fully supports it -->
+        <!-- <PublishAot>true</PublishAot> -->
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+        <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="testASP.Tests\testASP.Tests.csproj" />
+      <Content Remove="testASP.Tests\**" />
+      <Content Remove="Vite\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="testASP.Tests\**" />
+      <Compile Remove="Vite\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="testASP.Tests\**" />
+      <EmbeddedResource Remove="Vite\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="testASP.Tests\**" />
+      <None Remove="Vite\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="testASP.Tests\obj\project.assets.json" />
+      <_ContentIncludedByDefault Remove="testASP.Tests\obj\testASP.Tests.csproj.nuget.dgspec.json" />
+      <_ContentIncludedByDefault Remove="Vite\package.json" />
+      <_ContentIncludedByDefault Remove="Vite\tsconfig.app.json" />
+      <_ContentIncludedByDefault Remove="Vite\tsconfig.json" />
+      <_ContentIncludedByDefault Remove="Vite\tsconfig.node.json" />
+      <_ContentIncludedByDefault Remove="testASP.Tests\obj\project.packagespec.json" />
     </ItemGroup>
 
     

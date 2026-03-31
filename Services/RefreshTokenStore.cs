@@ -31,4 +31,26 @@ public sealed class RefreshTokenStore
     {
         _tokens.TryRemove(token, out _);
     }
+
+    /// <summary>
+    /// Отзыв всех refresh токенов пользователя
+    /// </summary>
+    public int RevokeAllUserTokens(int userId)
+    {
+        var userTokens = _tokens
+            .Where(kvp => kvp.Value.UserId == userId)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        var revokedCount = 0;
+        foreach (var token in userTokens)
+        {
+            if (_tokens.TryRemove(token, out _))
+            {
+                revokedCount++;
+            }
+        }
+
+        return revokedCount;
+    }
 }
