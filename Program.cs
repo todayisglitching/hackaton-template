@@ -70,8 +70,11 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5000);
-    options.ListenAnyIP(5001, listenOptions => listenOptions.UseHttps());
+    var httpPort = builder.Configuration.GetValue<int>("HTTP_PORT", 8080);
+    var httpsPort = builder.Configuration.GetValue<int>("HTTPS_PORT", 8443);
+    
+    options.ListenAnyIP(httpPort);
+    options.ListenAnyIP(httpsPort, listenOptions => listenOptions.UseHttps());
 });
 
 var app = builder.Build();
@@ -114,7 +117,7 @@ else
     app.MapFallback(async context =>
     {
         context.Response.StatusCode = StatusCodes.Status404NotFound;
-        await context.Response.WriteAsync("SPA build not found. Run Vite build to generate /Vite/dist.");
+        await context.Response.WriteAsync("SPA build not found. Run bun run build to generate /Vite/dist.");
     });
 }
 

@@ -5,10 +5,12 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "todos",
-      "applicationUrl": "http://localhost:5021",
+      "launchUrl": "https://localhost:8443",
+      "applicationUrl": "https://localhost:8443",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "HTTP_PORT": "8080",
+        "HTTPS_PORT": "8443"
       }
     }
   }
