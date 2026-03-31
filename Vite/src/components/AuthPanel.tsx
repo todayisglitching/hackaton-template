@@ -1,5 +1,5 @@
 import type { AuthMode } from '../types'
-import './AuthPanel.css'
+import { Card, Button, Input } from '@heroui/react'
 
 type Props = {
   authMode: AuthMode
@@ -21,45 +21,53 @@ export function AuthPanel({
   onSubmit
 }: Props) {
   return (
-    <section className="panel auth-panel">
-      <h2>Авторизация</h2>
-      <div className="auth">
-        <div className="auth__tabs">
-          <button
-            className={authMode === 'login' ? 'tab tab--active' : 'tab'}
-            onClick={() => onAuthModeChange('login')}
+    <Card className="max-w-md w-full p-6">
+      <div className="flex flex-col gap-6">
+        <h2 className="text-2xl font-bold">Авторизация</h2>
+        <div className="flex gap-2">
+          <Button
+            variant={authMode === 'login' ? 'primary' : 'outline'}
+            onPress={() => onAuthModeChange('login')}
+            className="flex-1"
           >
             Вход
-          </button>
-          <button
-            className={authMode === 'register' ? 'tab tab--active' : 'tab'}
-            onClick={() => onAuthModeChange('register')}
+          </Button>
+          <Button
+            variant={authMode === 'register' ? 'primary' : 'outline'}
+            onPress={() => onAuthModeChange('register')}
+            className="flex-1"
           >
             Регистрация
-          </button>
+          </Button>
         </div>
-        <label className="field">
-          <span>Email</span>
-          <input
+
+        <div className="flex flex-col gap-4">
+          <Input
             type="email"
-            value={email}
-            onChange={event => onEmailChange(event.target.value)}
+            aria-label="Email"
             placeholder="you@example.com"
+            value={email}
+            onChange={(event) => onEmailChange(event.target.value)}
+            required
           />
-        </label>
-        <label className="field">
-          <span>Пароль</span>
-          <input
+          <Input
             type="password"
-            value={password}
-            onChange={event => onPasswordChange(event.target.value)}
+            aria-label="Пароль"
             placeholder="Минимум 6 символов"
+            value={password}
+            onChange={(event) => onPasswordChange(event.target.value)}
+            required
           />
-        </label>
-        <button className="btn btn--accent" onClick={onSubmit}>
-          {authMode === 'register' ? 'Создать аккаунт' : 'Войти'}
-        </button>
+          
+          <Button 
+            onPress={onSubmit}
+            className="w-full"
+            variant="primary"
+          >
+            {authMode === 'register' ? 'Создать аккаунт' : 'Войти'}
+          </Button>
+        </div>
       </div>
-    </section>
+    </Card>
   )
 }

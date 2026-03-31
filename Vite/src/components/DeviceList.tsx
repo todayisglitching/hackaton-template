@@ -1,5 +1,5 @@
 import type { DeviceDto } from '../types'
-import './DeviceList.css'
+import { Card, Button, Badge } from '@heroui/react'
 
 type Props = {
   devices: DeviceDto[]
@@ -13,38 +13,56 @@ type Props = {
 
 export function DeviceList({ devices, selectedId, statusHint, onSelect, onAdd, onRemove, onSignOut }: Props) {
   return (
-    <aside className="device-list">
-      <div className="device-list__header">
-        <h3>Дашборд</h3>
-        <button className="btn btn--ghost" onClick={onAdd}>Добавить</button>
-      </div>
-      <div className="device-list__items">
-        {devices.length === 0 && <p className="device-list__empty">Устройств нет</p>}
-        {devices.map(device => (
-          <div
-            key={device.deviceId}
-            className={selectedId === device.deviceId ? 'device-list__item device-list__item--active' : 'device-list__item'}
-          >
-            <button className="device-list__select" onClick={() => onSelect(device.deviceId)}>
-              <span>{device.name}</span>
-              {selectedId === device.deviceId && statusHint && (
-                <span className="device-list__status" title={statusHint}>
-                  <span className="device-list__dot" /> {statusHint}
-                </span>
-              )}
-            </button>
-            <button
-              className="device-list__remove"
-              onClick={() => onRemove(device.deviceId)}
-              aria-label="Удалить устройство"
-              title="Удалить устройство"
+    <Card className="w-full max-w-xs">
+      <Card.Header className="flex flex-row items-center justify-between">
+        <h3 className="text-lg font-semibold">Дашборд</h3>
+        <Button onPress={onAdd} size="sm" variant="outline">
+          Добавить
+        </Button>
+      </Card.Header>
+      <div className="px-4 py-2">
+        <div className="space-y-2">
+          {devices.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">Устройств нет</p>
+          )}
+          {devices.map(device => (
+            <div
+              key={device.deviceId}
+              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                selectedId === device.deviceId
+                  ? 'bg-primary/10 border border-primary/20'
+                  : 'hover:bg-muted/50'
+              }`}
+              onClick={() => onSelect(device.deviceId)}
             >
-              🗑
-            </button>
-          </div>
-        ))}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{device.name}</span>
+                  {selectedId === device.deviceId && statusHint && (
+                    <Badge size="sm" variant="secondary" className="ml-2">
+                      {statusHint}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => onRemove(device.deviceId)}
+                aria-label="Удалить устройство"
+                className="text-muted-foreground hover:text-danger"
+              >
+                🗑
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
-      <button className="btn" onClick={onSignOut}>Выйти</button>
-    </aside>
+      <div className="p-4 border-t">
+        <Button onPress={onSignOut} variant="outline" className="w-full">
+          Выйти
+        </Button>
+      </div>
+    </Card>
   )
 }
