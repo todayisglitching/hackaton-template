@@ -88,9 +88,21 @@ public sealed class DatabaseHealthService
             
             foreach (var table in tables)
             {
-                var exists = await _context.Database.SqlQueryRaw<int>(
-                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name={0}", table)
-                    .FirstOrDefaultAsync() > 0;
+                var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@p0";
+                
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@p0";
+                parameter.Value = table;
+                command.Parameters.Add(parameter);
+                
+                var result = await command.ExecuteScalarAsync();
+                var exists = Convert.ToInt32(result) > 0;
+                
+                await connection.CloseAsync();
                 
                 if (!exists)
                 {
