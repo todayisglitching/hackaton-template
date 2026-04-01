@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using testASP.Models;
 
 namespace testASP.Services;
 
@@ -315,6 +316,27 @@ public sealed class EnhancedJwtTokenService
 
         _logger.LogDebug("Очищено {ExpiredCount} истекших и {StaleCount} неиспользуемых токенов", 
             expiredTokens.Count, staleTokens.Count);
+    }
+
+    /// <summary>
+    /// Получение активных сессий пользователя
+    /// </summary>
+    public List<ActiveSession> GetActiveSessions(int userId)
+    {
+        var now = DateTime.UtcNow;
+        return _activeTokens.Values
+            .Where(t => t.UserId == userId && t.Expires > now)
+            .Select(t => new ActiveSession
+            {
+                SessionId = t.TokenId,
+                DeviceInfo = "Unknown Device", // Можно расширить для детекции устройства
+                IpAddress = "Unknown IP", // Можно добавить из HttpContext
+                CreatedAt = t.IssuedAt,
+                LastUsed = t.LastUsed,
+                ExpiresAt = t.Expires,
+                IsCurrent = false // Будет установлено в сервисе
+            })
+            .ToList();
     }
 
     /// <summary>

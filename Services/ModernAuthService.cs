@@ -115,6 +115,29 @@ public sealed class ModernAuthService : IAuthService
     }
 
     /// <summary>
+    /// Отзыв конкретной сессии
+    /// </summary>
+    public void RevokeSession(ClaimsPrincipal user, RevokeSessionRequest request)
+    {
+        var idClaim = user.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+        if (!int.TryParse(idClaim, out var userId))
+        {
+            throw new UnauthorizedAccessException("Пользователь не аутентифицирован");
+        }
+
+        var success = _tokens.RevokeToken(request.SessionId);
+        if (success)
+        {
+            _logger.LogInformation("Сессия отозвана: {SessionId}, Пользователь: {UserId}", request.SessionId, userId);
+        }
+        else
+        {
+            _logger.LogWarning("Сессия не найдена: {SessionId}, Пользователь: {UserId}", request.SessionId, userId);
+            throw new InvalidOperationException("Сессия не найдена");
+        }
+    }
+
+    /// <summary>
     /// Выход пользователя с отзывом токена
     /// </summary>
     public void Logout(LogoutRequest request)
@@ -128,11 +151,13 @@ public sealed class ModernAuthService : IAuthService
     }
 
     /// <summary>
-    /// Получение информации о пользователе
+    /// Получение информации о пользователе с активными сессиями
     /// </summary>
     public MeResponse Me(ClaimsPrincipal user)
     {
         var idClaim = user.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+        var tokenId = user.Claims.FirstOrDefault(x => x.Type == "jti")?.Value;
+        
         if (!int.TryParse(idClaim, out var userId))
         {
             _logger.LogWarning("Некорректный ID пользователя в токене");
@@ -146,7 +171,26 @@ public sealed class ModernAuthService : IAuthService
             throw new UnauthorizedAccessException("Пользователь не найден");
         }
 
-        return new MeResponse { UserId = dbUser.Id };
+        var sessions = _tokens.GetActiveSessions(userId);
+        
+        // Помечаем текущую сессию
+        if (!string.IsNullOrEmpty(tokenId))
+        {
+            var currentSession = sessions.FirstOrDefault(s => s.SessionId == tokenId);
+            if (currentSession != null)
+            {
+                currentSession = currentSession with { IsCurrent = true };
+                var index = sessions.FindIndex(s => s.SessionId == tokenId);
+                sessions[index] = currentSession;
+            }
+        }
+
+        return new MeResponse 
+        { 
+            UserId = dbUser.Id, 
+            Email = dbUser.Email,
+            ActiveSessions = sessions
+        };
     }
 
     /// <summary>
@@ -154,7 +198,7 @@ public sealed class ModernAuthService : IAuthService
     /// </summary>
     private AuthResponse CreateTokens(int userId)
     {
-        var accessToken = _tokens.CreateToken(userId, TimeSpan.FromMinutes(5));
+        var accessToken = _tokens.CreateToken(userId, TimeSpan.FromMinutes(30));
         var refreshToken = _refreshTokens.Create(userId, TimeSpan.FromDays(7));
         
         return new AuthResponse 

@@ -132,14 +132,14 @@ public sealed class AuthController : ControllerBase
         _logger.LogInformation("Попытка выхода из системы");
         _auth.Logout(request);
         _logger.LogInformation("Пользователь успешно вышел из системы");
-        return Ok();
+        return Ok(new { });
     }
 
     /// <summary>
-    /// Получение информации о текущем пользователе
+    /// Получение информации о текущем пользователе с активными сессиями
     /// </summary>
-    /// <returns>Информация о пользователе</returns>
-    /// <response code="200">Информация о пользователе</response>
+    /// <returns>Информация о пользователе и активных сессиях</returns>
+    /// <response code="200">Информация о пользователе и сессиях</response>
     /// <response code="401">Пользователь не аутентифицирован</response>
     [Authorize]
     [HttpGet("me")]
@@ -157,6 +157,38 @@ public sealed class AuthController : ControllerBase
         {
             _logger.LogWarning("Ошибка получения информации о пользователе: {Error}", ex.Message);
             return Unauthorized(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Отзыв конкретной сессии
+    /// </summary>
+    /// <param name="request">Запрос на отзыв сессии</param>
+    /// <response code="200">Сессия успешно отозвана</response>
+    /// <response code="400">Сессия не найдена</response>
+    /// <response code="401">Пользователь не аутентифицирован</response>
+    [Authorize]
+    [HttpPost("revoke-session")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult RevokeSession([FromBody] RevokeSessionRequest request)
+    {
+        try
+        {
+            _auth.RevokeSession(User, request);
+            _logger.LogInformation("Сессия успешно отозвана");
+            return Ok(new { });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("Ошибка отзыва сессии: {Error}", ex.Message);
+            return Unauthorized(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("Ошибка отзыва сессии: {Error}", ex.Message);
+            return BadRequest(ex.Message);
         }
     }
 }

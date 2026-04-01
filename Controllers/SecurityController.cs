@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using testASP.Services;
+using testASP.Models;
 
 namespace testASP.Controllers;
 
@@ -33,9 +34,9 @@ public sealed class SecurityController : ControllerBase
     /// <response code="200">Статистика успешно получена</response>
     /// <response code="401">Пользователь не аутентифицирован</response>
     [HttpGet("statistics")]
-    [ProducesResponseType(typeof(SecurityStatistics), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TokenStatistics), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public ActionResult<SecurityStatistics> GetSecurityStatistics()
+    public ActionResult<TokenStatistics> GetSecurityStatistics()
     {
         var statistics = _jwtService.GetStatistics();
         
@@ -51,9 +52,9 @@ public sealed class SecurityController : ControllerBase
     /// <response code="200">Все токены успешно отозваны</response>
     /// <response code="401">Пользователь не аутентифицирован</response>
     [HttpPost("revoke-all")]
-    [ProducesResponseType(typeof(RevokeAllResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SecurityRevokeAllResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public ActionResult<RevokeAllResponse> RevokeAllTokens()
+    public ActionResult<SecurityRevokeAllResponse> RevokeAllTokens()
     {
         var userIdClaim = User.FindFirst("id")?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
@@ -65,7 +66,7 @@ public sealed class SecurityController : ControllerBase
         
         _logger.LogInformation("Пользователь {UserId} отозвал все свои токены ({Count} шт)", userId, revokedCount);
         
-        return Ok(new RevokeAllResponse 
+        return Ok(new SecurityRevokeAllResponse 
         { 
             RevokedCount = revokedCount,
             Message = "Все токены успешно отозваны"
@@ -136,9 +137,9 @@ public sealed class SecurityController : ControllerBase
     /// <response code="200">Информация о токене получена</response>
     /// <response code="401">Пользователь не аутентифицирован</response>
     [HttpGet("token-info")]
-    [ProducesResponseType(typeof(TokenInfo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(SecurityTokenInfo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public ActionResult<TokenInfo> GetTokenInfo()
+    public ActionResult<SecurityTokenInfo> GetTokenInfo()
     {
         var jti = User.FindFirst("jti")?.Value;
         var userId = User.FindFirst("id")?.Value;
@@ -151,7 +152,7 @@ public sealed class SecurityController : ControllerBase
             return Unauthorized("Некорректный токен");
         }
 
-        var tokenInfo = new TokenInfo
+        var tokenInfo = new SecurityTokenInfo
         {
             TokenId = jti,
             UserId = int.Parse(userId),
@@ -181,7 +182,7 @@ public class ValidatePasswordRequest
 /// <summary>
 /// Ответ на отзыв всех токенов
 /// </summary>
-public class RevokeAllResponse
+public class SecurityRevokeAllResponse
 {
     /// <summary>
     /// Количество отозванных токенов
@@ -218,7 +219,7 @@ public class GeneratePasswordResponse
 /// <summary>
 /// Информация о токене
 /// </summary>
-public class TokenInfo
+public class SecurityTokenInfo
 {
     /// <summary>
     /// ID токена

@@ -28,7 +28,7 @@ public sealed class DeviceService : IDeviceService
             throw new InvalidOperationException("Имя и идентификатор устройства обязательны");
         }
 
-        return _store.AddDevice(userId, request.Name, request.DeviceId);
+        return _store.AddDevice(userId, request);
     }
 
     public void SelectDevice(ClaimsPrincipal user, DeviceSelectRequest request)

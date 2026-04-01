@@ -173,21 +173,11 @@ public static class ServiceCollectionExtensions
         {
             var users = provider.GetRequiredService<UserStore>();
             var refreshTokens = provider.GetRequiredService<RefreshTokenStore>();
-            var configuration = provider.GetRequiredService<IConfiguration>();
             var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
             
-            if (securitySettings.EnableEnhancedJwtSecurity)
-            {
-                var enhancedTokenService = provider.GetRequiredService<EnhancedJwtTokenService>();
-                var logger = loggerFactory.CreateLogger<EnhancedAuthService>();
-                return new EnhancedAuthService(users, enhancedTokenService, refreshTokens, configuration, logger);
-            }
-            else
-            {
-                var tokenService = provider.GetRequiredService<JwtTokenService>();
-                var logger = loggerFactory.CreateLogger<AuthService>();
-                return new AuthService(users, tokenService, refreshTokens, configuration);
-            }
+            var enhancedTokenService = provider.GetRequiredService<EnhancedJwtTokenService>();
+            var logger = loggerFactory.CreateLogger<ModernAuthService>();
+            return new ModernAuthService(users, enhancedTokenService, refreshTokens, logger);
         });
         services.AddScoped<IDeviceService, DeviceService>();
         

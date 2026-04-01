@@ -20,23 +20,39 @@ public sealed class DeviceStore
         {
             return new DeviceListResponse
             {
-                Devices = data.Devices.Select(d => new DeviceDto { DeviceId = d.DeviceId, Name = d.Name }).ToList(),
+                Devices = data.Devices.ToList(),
                 SelectedDeviceId = data.SelectedDeviceId
             };
         }
     }
 
-    public DeviceDto AddDevice(int userId, string name, string deviceId)
+    public DeviceDto AddDevice(int userId, DeviceCreateRequest request)
     {
         var data = _store.GetOrAdd(userId, _ => new UserDevices());
         lock (data)
         {
-            var existing = data.Devices.FirstOrDefault(d => d.DeviceId == deviceId);
+            var existing = data.Devices.FirstOrDefault(d => d.DeviceId == request.DeviceId);
             if (existing != null) return existing;
 
-            var device = new DeviceDto { DeviceId = deviceId, Name = name };
+            var device = new DeviceDto 
+            { 
+                Id = data.Devices.Count + 1,
+                DeviceId = request.DeviceId,
+                Name = request.Name,
+                Type = request.Type,
+                Status = "offline",
+                Properties = request.Properties,
+                Location = request.Location,
+                Manufacturer = request.Manufacturer,
+                Model = request.Model,
+                FirmwareVersion = request.FirmwareVersion,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsEnabled = true
+            };
+            
             data.Devices.Add(device);
-            data.SelectedDeviceId ??= deviceId;
+            data.SelectedDeviceId ??= request.DeviceId;
             return device;
         }
     }

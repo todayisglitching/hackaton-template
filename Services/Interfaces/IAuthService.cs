@@ -9,4 +9,5 @@ public interface IAuthService
     AuthResponse Refresh(RefreshRequest request);
     void Logout(LogoutRequest request);
     MeResponse Me(System.Security.Claims.ClaimsPrincipal user);
+    void RevokeSession(System.Security.Claims.ClaimsPrincipal user, RevokeSessionRequest request);
 }
