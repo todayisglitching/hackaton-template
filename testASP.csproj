@@ -20,36 +20,36 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="testASP.Tests\testASP.Tests.csproj" />
-      <Content Remove="testASP.Tests\**" />
-      <Content Remove="Vite\**" />
+        <Content Include="testASP.Tests\testASP.Tests.csproj" />
+        <Content Remove="testASP.Tests\**" />
+        <Content Remove="Vite\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="testASP.Tests\**" />
-      <Compile Remove="Vite\**" />
+        <Compile Remove="testASP.Tests\**" />
+        <Compile Remove="Vite\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Remove="testASP.Tests\**" />
-      <EmbeddedResource Remove="Vite\**" />
+        <EmbeddedResource Remove="testASP.Tests\**" />
+        <EmbeddedResource Remove="Vite\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="testASP.Tests\**" />
-      <None Remove="Vite\**" />
+        <None Remove="testASP.Tests\**" />
+        <None Remove="Vite\**" />
     </ItemGroup>
 
     <ItemGroup>
-      <_ContentIncludedByDefault Remove="testASP.Tests\obj\project.assets.json" />
-      <_ContentIncludedByDefault Remove="testASP.Tests\obj\testASP.Tests.csproj.nuget.dgspec.json" />
-      <_ContentIncludedByDefault Remove="Vite\package.json" />
-      <_ContentIncludedByDefault Remove="Vite\tsconfig.app.json" />
-      <_ContentIncludedByDefault Remove="Vite\tsconfig.json" />
-      <_ContentIncludedByDefault Remove="Vite\tsconfig.node.json" />
-      <_ContentIncludedByDefault Remove="testASP.Tests\obj\project.packagespec.json" />
+        <_ContentIncludedByDefault Remove="testASP.Tests\obj\project.assets.json" />
+        <_ContentIncludedByDefault Remove="testASP.Tests\obj\testASP.Tests.csproj.nuget.dgspec.json" />
+        <_ContentIncludedByDefault Remove="Vite\package.json" />
+        <_ContentIncludedByDefault Remove="Vite\tsconfig.app.json" />
+        <_ContentIncludedByDefault Remove="Vite\tsconfig.json" />
+        <_ContentIncludedByDefault Remove="Vite\tsconfig.node.json" />
+        <_ContentIncludedByDefault Remove="testASP.Tests\obj\project.packagespec.json" />
     </ItemGroup>
 
-    
+
 
 </Project>
