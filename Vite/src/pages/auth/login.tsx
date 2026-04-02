@@ -2,8 +2,10 @@ import { Button, Input, TextField, toast } from "@heroui/react";
 import '../../globals.css';
 import { useAuth } from '../../hooks/auth';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+    const navigate = useNavigate();
     const { login, isLoading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -27,6 +29,7 @@ const LoginPage = () => {
             } else {
                 // Успешный вход — показываем уведомление
                 toast.success('Успешный вход! Добро пожаловать!');
+                navigate('/dashboard');
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -38,8 +41,8 @@ const LoginPage = () => {
     return (
         <div className="flex items-center justify-center h-screen">
             <div className="w-full max-w-3xs flex flex-col items-center gap-2">
-                <form onSubmit={handleSubmit} className="w-full">
-                    <TextField className="w-full max-w-64" name="email" type="email">
+                <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3">
+                    <TextField className="w-full" name="email" type="email">
                         <label>Email</label>
                         <Input
                             placeholder="every@killalldata.ru"
@@ -49,7 +52,7 @@ const LoginPage = () => {
                             disabled={isLoading} // Блокируем ввод во время загрузки
                         />
                     </TextField>
-                    <TextField className="w-full max-w-64" name="password" type="password">
+                    <TextField className="w-full" name="password" type="password">
                         <label>Пароль</label>
                         <Input
                             placeholder="··········"
@@ -70,7 +73,8 @@ const LoginPage = () => {
                 <Button
                     size="sm"
                     variant="ghost"
-                    isDisabled={isLoading} // Блокируем кнопку во время загрузки
+                    isDisabled={isLoading}
+                    onClick={() => navigate('/auth/register')}
                 >
                     Зарегистрироваться
                 </Button>

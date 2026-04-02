@@ -1,8 +1,10 @@
 import { Button, Checkbox, CheckboxGroup, Description, Input, Label, TextField, Link, toast } from "@heroui/react";
 import { useAuth } from '../../hooks/auth';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
+    const navigate = useNavigate();
     const { register, isLoading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -59,7 +61,7 @@ const RegisterPage = () => {
             } else {
                 // Успешная регистрация — показываем успех
                 toast.success('Регистрация успешна! Добро пожаловать!');
-                // Можно добавить перенаправление: navigate('/dashboard');
+                navigate('/dashboard');
             }
         } catch (err) {
             // Обработка непредвиденных ошибок (например, сетевой сбой)
@@ -70,8 +72,8 @@ const RegisterPage = () => {
     return (
         <div className="flex items-center justify-center h-screen">
             <div className="w-full max-w-3xs flex flex-col items-center gap-2">
-                <form onSubmit={handleSubmit} className="w-full">
-                    <TextField className="w-full max-w-64" name="email" type="email">
+                <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3">
+                    <TextField className="w-full" name="email" type="email">
                         <label>Email</label>
                         <Input
                             placeholder="every@killalldata.ru"
@@ -82,7 +84,7 @@ const RegisterPage = () => {
                         />
                     </TextField>
 
-                    <TextField className="w-full max-w-64" name="password" type="password">
+                    <TextField className="w-full" name="password" type="password">
                         <label>Пароль</label>
                         <Input
                             placeholder="··········"
@@ -150,7 +152,7 @@ const RegisterPage = () => {
                         {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
                     </Button>
                 </form>
-                <Button size="sm" variant="ghost" disabled={isLoading}>
+                <Button size="sm" variant="ghost" isDisabled={isLoading} onClick={() => navigate("/auth/login")}>
                     Вернуться обратно
                 </Button>
             </div>

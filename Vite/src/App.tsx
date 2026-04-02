@@ -1,6 +1,6 @@
 // App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/landing';
 import LoginPage from './pages/auth/login';
 import RegisterPage from './pages/auth/register';
@@ -9,7 +9,7 @@ import AccountPage from './pages/dashboard/account';
 import Sidebar from './components/sidebar';
 import './globals.css';
 import { AuthProvider } from './hooks/auth';
-import { ProtectedRoute } from './components/protectedRoute';
+import { ProtectedRoute, GuestRoute } from './components/protectedRoute';
 
 function App() {
     return (
@@ -17,8 +17,9 @@ function App() {
             <Router>
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
-                    <Route path="/auth/login" element={<LoginPage />} />
-                    <Route path="/auth/register" element={<RegisterPage />} />
+                    <Route path="/auth" element={<Navigate to="/auth/login" replace />} />
+                    <Route path="/auth/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+                    <Route path="/auth/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
 
 
                     <Route
