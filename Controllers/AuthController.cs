@@ -47,7 +47,7 @@ public sealed class AuthController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning("Ошибка регистрации: {Error}", ex.Message);
-            return BadRequest(ex.Message);
+            return BadRequest(new { error = "Validation Failed", message = ex.Message });
         }
     }
 
@@ -76,12 +76,12 @@ public sealed class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning("Ошибка входа: {Error}", ex.Message);
-            return Unauthorized(ex.Message);
+            return Unauthorized(new { error = "Unauthorized", message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning("Ошибка входа: {Error}", ex.Message);
-            return BadRequest(ex.Message);
+            return BadRequest(new { error = "Validation Failed", message = ex.Message });
         }
     }
 
@@ -110,12 +110,12 @@ public sealed class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning("Ошибка обновления токена: {Error}", ex.Message);
-            return Unauthorized(ex.Message);
+            return Unauthorized(new { error = "Unauthorized", message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning("Ошибка обновления токена: {Error}", ex.Message);
-            return BadRequest(ex.Message);
+            return BadRequest(new { error = "Validation Failed", message = ex.Message });
         }
     }
 
@@ -156,7 +156,7 @@ public sealed class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning("Ошибка получения информации о пользователе: {Error}", ex.Message);
-            return Unauthorized(ex.Message);
+            return Unauthorized(new { error = "Unauthorized", message = ex.Message });
         }
     }
 
@@ -183,12 +183,12 @@ public sealed class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning("Ошибка отзыва сессии: {Error}", ex.Message);
-            return Unauthorized(ex.Message);
+            return Unauthorized(new { error = "Unauthorized", message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning("Ошибка отзыва сессии: {Error}", ex.Message);
-            return BadRequest(ex.Message);
+            return BadRequest(new { error = "Validation Failed", message = ex.Message });
         }
     }
 }

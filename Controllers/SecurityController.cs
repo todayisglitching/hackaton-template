@@ -59,7 +59,7 @@ public sealed class SecurityController : ControllerBase
         var userIdClaim = User.FindFirst("id")?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
         {
-            return Unauthorized("Пользователь не аутентифицирован");
+            return Unauthorized(new { error = "Unauthorized", message = "Пользователь не аутентифицирован" });
         }
 
         var revokedCount = _jwtService.RevokeAllUserTokens(userId);
@@ -88,7 +88,7 @@ public sealed class SecurityController : ControllerBase
         var userIdClaim = User.FindFirst("id")?.Value;
         if (string.IsNullOrEmpty(userIdClaim))
         {
-            return Unauthorized("Пользователь не аутентифицирован");
+            return Unauthorized(new { error = "Unauthorized", message = "Пользователь не аутентифицирован" });
         }
 
         // Получаем email пользователя для проверки персональной информации
@@ -115,7 +115,7 @@ public sealed class SecurityController : ControllerBase
     {
         if (length < 8 || length > 32)
         {
-            return BadRequest("Длина пароля должна быть от 8 до 32 символов");
+            return BadRequest(new { error = "Validation Failed", message = "Длина пароля должна быть от 8 до 32 символов" });
         }
 
         var password = _passwordService.GenerateSecurePassword(length);
