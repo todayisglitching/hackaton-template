@@ -1,91 +1,158 @@
 const SERVICE_UUID = '00001234-0000-1000-8000-00805f9b34fb';
 const CHAR_UUID = '00000001-0000-1000-8000-00805f9b34fb';
+const DEVICE_NAME_PREFIXES = ['Fake Kettle', 'Smart Kettle', 'Demo Kettle', 'Kettle', 'USmart'];
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseTextTemperature(dataView: DataView) {
+  const bytes = new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength);
+  const text = new TextDecoder().decode(bytes).trim();
+  const match = text.match(/-?\d+(?:[.,]\d+)?/);
+  if (!match) {
+    return null;
+  }
+
+  const parsed = Number(match[0].replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseBinaryTemperature(dataView: DataView) {
+  const candidates: number[] = [];
+
+  if (dataView.byteLength >= 1) {
+    candidates.push(dataView.getUint8(0));
+    candidates.push(dataView.getInt8(0));
+  }
+
+  if (dataView.byteLength >= 2) {
+    candidates.push(dataView.getUint16(0, true));
+    candidates.push(dataView.getInt16(0, true));
+    candidates.push(dataView.getUint16(0, false));
+    candidates.push(dataView.getInt16(0, false));
+    candidates.push(dataView.getUint16(0, true) / 10);
+    candidates.push(dataView.getInt16(0, true) / 10);
+  }
+
+  if (dataView.byteLength >= 4) {
+    candidates.push(dataView.getFloat32(0, true));
+    candidates.push(dataView.getFloat32(0, false));
+  }
+
+  return candidates.find((value) => Number.isFinite(value) && value > -50 && value < 200) ?? null;
+}
+
+function extractTemperature(dataView: DataView) {
+  return parseTextTemperature(dataView) ?? parseBinaryTemperature(dataView);
+}
 
 export function isChromiumBrowser(): boolean {
-    const ua = navigator.userAgent;
-    return /Chrome|Chromium|Edg|OPR/.test(ua);
+  const ua = navigator.userAgent;
+  return /Chrome|Chromium|Edg|OPR/.test(ua);
 }
 
 export function supportsBluetooth(): boolean {
-    return Boolean(navigator?.bluetooth) && isChromiumBrowser();
+  return Boolean(navigator.bluetooth) && isChromiumBrowser();
 }
 
-/**
- * Запрос нового устройства через системное окно браузера
- */
 export async function requestKettleDevice(): Promise<BluetoothDevice> {
-    return navigator.bluetooth.requestDevice({
-        filters: [{ services: [SERVICE_UUID] }]
-    });
+  const filters: BluetoothLEScanFilter[] = [{ services: [SERVICE_UUID] }];
+
+  for (const namePrefix of DEVICE_NAME_PREFIXES) {
+    filters.push({ namePrefix });
+  }
+
+  return navigator.bluetooth.requestDevice({
+    filters,
+    optionalServices: [SERVICE_UUID],
+  });
 }
 
-/**
- * Поиск устройства, на которое пользователь УЖЕ давал разрешение ранее
- */
 export async function findKnownDevice(deviceId: string): Promise<BluetoothDevice | null> {
-    if (!navigator.bluetooth?.getDevices) return null;
-    const devices = await navigator.bluetooth.getDevices();
-    return devices.find(d => d.id === deviceId) ?? null;
+  if (!navigator.bluetooth?.getDevices) {
+    return null;
+  }
+
+  const devices = await navigator.bluetooth.getDevices();
+  return devices.find((device) => device.id === deviceId) ?? null;
 }
 
-/**
- * Основная логика подключения с защитой от "гонки" GATT-команд
- */
 export async function connectToDevice(
-    device: BluetoothDevice,
-    onTemp: (value: number) => void
+  device: BluetoothDevice,
+  onTemp: (value: number) => void
 ): Promise<BluetoothRemoteGATTCharacteristic> {
-    
-    try {
-        console.info('[SmartHub] Инициализация GATT...');
-        const server = await device.gatt?.connect();
-        if (!server) throw new Error('GATT server not found');
-        
-        await new Promise(r => setTimeout(r, 1200)); 
-
-        const service = await server.getPrimaryService(SERVICE_UUID);
-        await new Promise(r => setTimeout(r, 200));
-        const characteristic = await service.getCharacteristic(CHAR_UUID);
-        
-        console.info('[SmartHub] Характеристика готова. Свойства:', characteristic.properties);
-
-        // 1. Попытка чтения (если не сработает — игнорируем)
-        if (characteristic.properties.read) {
-            characteristic.readValue()
-                .then(buf => {
-                    const val = buf.getUint8(0);
-                    console.info(`[SmartHub] ReadValue Success: ${val}`);
-                    onTemp(val);
-                })
-                .catch(() => console.warn('[SmartHub] Прямое чтение отклонено девайсом'));
-        }
-
-        // 2. Включаем уведомления
-        if (characteristic.properties.notify) {
-            await characteristic.startNotifications();
-            
-            characteristic.addEventListener('characteristicvaluechanged', (event: any) => {
-                const dataView = event.target.value as DataView;
-                if (dataView && dataView.byteLength > 0) {
-                    const val = dataView.getUint8(0);
-                    
-                    // ЭТОТ ЛОГ ПОКАЖЕТ, ЧТО ПРИШЛО ФИЗИЧЕСКИ
-                    console.log(`%c[BLE RECEIVE] Value: ${val}`, 'color: #00ff00; font-weight: bold');
-                    
-                    onTemp(val);
-                } else {
-                    console.warn('[SmartHub] Получен пустой пакет данных');
-                }
-            });
-            
-            console.info('[SmartHub] Подписка активна.');
-        }
-
-        return characteristic;
-
-    } catch (error) {
-        console.error('[SmartHub] Ошибка BLE:', error);
-        if (device.gatt?.connected) device.gatt.disconnect();
-        throw error;
+  try {
+    if (!device.gatt) {
+      throw new Error('Устройство не поддерживает GATT');
     }
+
+    const server = await device.gatt.connect();
+    await delay(700);
+
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    await delay(150);
+    const characteristic = await service.getCharacteristic(CHAR_UUID);
+
+    const publishValue = (dataView: DataView) => {
+      const nextValue = extractTemperature(dataView);
+      if (nextValue === null) {
+        console.warn('[SmartHub] Не удалось распарсить температуру из BLE-пакета', new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength));
+        return;
+      }
+
+      onTemp(nextValue);
+    };
+
+    if (characteristic.properties.read) {
+      try {
+        const buffer = await characteristic.readValue();
+        publishValue(buffer);
+      } catch (error) {
+        console.warn('[SmartHub] Прямое чтение отклонено устройством', error);
+      }
+    }
+
+    if (characteristic.properties.notify || characteristic.properties.indicate) {
+      await characteristic.startNotifications();
+      characteristic.addEventListener('characteristicvaluechanged', (event) => {
+        const target = event.target as BluetoothRemoteGATTCharacteristic | null;
+        const dataView = target?.value;
+        if (!dataView || dataView.byteLength < 1) {
+          console.warn('[SmartHub] Получен пустой BLE-пакет');
+          return;
+        }
+
+        publishValue(dataView);
+      });
+    }
+
+    if (!characteristic.properties.read && !characteristic.properties.notify && !characteristic.properties.indicate) {
+      throw new Error('Характеристика не поддерживает чтение и уведомления');
+    }
+
+    return characteristic;
+  } catch (error) {
+    console.error('[SmartHub] Ошибка BLE:', error);
+    if (device.gatt?.connected) {
+      device.gatt.disconnect();
+    }
+    throw error;
+  }
+}
+
+export { SERVICE_UUID, CHAR_UUID };
+
+export async function requestInitialTemperature(characteristic: BluetoothRemoteGATTCharacteristic): Promise<number | null> {
+  if (!characteristic.properties.read) {
+    return null;
+  }
+
+  try {
+    const value = await characteristic.readValue();
+    return extractTemperature(value);
+  } catch (error) {
+    console.warn('[SmartHub] Не удалось повторно запросить температуру', error);
+    return null;
+  }
 }

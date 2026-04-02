@@ -162,67 +162,40 @@ const HomePage = ({ mode = 'user' }: { mode?: 'demo' | 'user' }) => {
   };
 
   const backRoute = mode === 'demo' ? '/demo' : '/dashboard';
-  const isDemoMode = mode === 'demo';
-  const headerLabel = isDemoMode ? 'Публичное демо' : 'Кабинет';
-  const headerTitle = isDemoMode
-    ? 'Панель устройств без входа'
-    : 'Ваш USmart в браузере';
-  const headerDescription = isDemoMode
-    ? 'Доступ к демо-панели: подключитесь к BLE, посмотрите статусы и откройте карточку устройства без авторизации.'
-    : 'В кабинете управляются реальные устройства, BLE работает рядом с API и сессиями пользователя.';
-
-  if (isFetching && !devices.length) {
-    return <Card className="rt-card p-8 text-sm text-[color:var(--muted)]">Загружаем устройства...</Card>;
-  }
 
   return (
     <div className="space-y-6">
       <Card className="rt-card overflow-hidden">
-        <Card.Content className="grid gap-6 p-6 md:p-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rt-kicker">{headerLabel}</div>
+        <Card.Content className="grid gap-6 p-6 md:p-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
+          <div>
+            <div className="rt-kicker">{mode === 'demo' ? 'Public demo' : 'Dashboard'}</div>
+            <h1 className="rt-display mt-3 text-4xl font-semibold">
+              {mode === 'demo' ? 'Демо-панель устройств без входа.' : 'Устройства пользователя в отдельном кабинете.'}
+            </h1>
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[color:var(--muted)] md:text-base">
+              {mode === 'demo'
+                ? 'Здесь живёт открытый сценарий для защиты: мок-устройства и BLE-подключение без авторизации.'
+                : 'Этот раздел работает только с реальными устройствами пользователя через backend API и BLE-добавление в кабинет.'}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
               <Chip className="rt-pill text-xs">Источник: {sourceLabel === 'api' ? 'backend API' : 'публичное демо'}</Chip>
+              <Chip className="rt-pill text-xs">{bleStatus}</Chip>
             </div>
-            <h1 className="rt-display text-4xl font-semibold">{headerTitle}</h1>
-            <p className="text-sm leading-relaxed text-[color:var(--muted)] md:text-base">{headerDescription}</p>
-            <div className="flex flex-wrap gap-3">
-              <Button className="rt-btn rt-btn-primary" onClick={handleAddDevice} isDisabled={isConnecting}>
-                {isConnecting ? 'Готовим BLE...' : 'Подключить BLE'}
-              </Button>
-              {mode === 'demo' ? (
-                <Button className="rt-btn rt-btn-secondary" onClick={() => navigate('/auth/login')}>
-                  В личный кабинет
-                </Button>
-              ) : (
-                <Button className="rt-btn rt-btn-secondary" onClick={() => navigate('/dashboard/account')}>
-                  Сессии
-                </Button>
-              )}
-            </div>
-            <div className="text-sm text-[color:var(--muted)]">{bleStatus}</div>
           </div>
-          <div className="space-y-3">
-            <Card className="rt-card-soft">
-              <Card.Content className="space-y-3 p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="text-sm text-[color:var(--muted)]">BLE статус</div>
-                  <Chip className="rt-pill text-xs">{isConnecting ? 'Подключение...' : 'Авто-соединение'}</Chip>
-                </div>
-                <p className="text-sm text-[color:var(--muted)]">{bleStatus}</p>
-                <div className="text-xs text-[color:var(--muted)]">
-                  {supportsBluetooth()
-                    ? 'Web Bluetooth работает в Chromium-браузерах.'
-                    : 'Web Bluetooth доступен только в Chromium-браузерах.'}
-                </div>
-              </Card.Content>
-            </Card>
-            <Card className="rt-card-soft">
-              <Card.Content className="space-y-2 p-5 text-sm text-[color:var(--muted)]">
-                <div>Статус источника: {sourceLabel === 'api' ? 'backend API' : 'публичное демо'}</div>
-                <div>Всего устройств: {devices.length}</div>
-              </Card.Content>
-            </Card>
+
+          <div className="flex flex-col gap-3 sm:flex-row xl:justify-end">
+            <Button className="rt-btn rt-btn-primary" onClick={handleAddDevice} isDisabled={isConnecting}>
+              {isConnecting ? 'Подключаем...' : 'Подключить BLE'}
+            </Button>
+            {mode === 'demo' ? (
+              <Button className="rt-btn rt-btn-secondary" onClick={() => navigate('/auth/login')}>
+                Войти в кабинет
+              </Button>
+            ) : (
+              <Button className="rt-btn rt-btn-secondary" onClick={() => navigate('/dashboard/account')}>
+                Открыть сессии
+              </Button>
+            )}
           </div>
         </Card.Content>
       </Card>
@@ -238,21 +211,23 @@ const HomePage = ({ mode = 'user' }: { mode?: 'demo' | 'user' }) => {
         ))}
       </div>
 
-      {visibleDevices.length === 0 ? (
+      {isFetching ? (
+        <Card className="rt-card p-8 text-sm text-[color:var(--muted)]">Загружаем устройства...</Card>
+      ) : visibleDevices.length === 0 ? (
         <Card className="rt-card p-8 text-sm text-[color:var(--muted)]">
           <div className="font-semibold text-[color:var(--foreground)]">Устройств пока нет.</div>
-          <div className="mt-2">Подключите BLE-устройство или добавьте его через backend, чтобы увидеть его в интерфейсе.</div>
+          <div className="mt-2">Подключите BLE-чайник или добавьте устройство через backend, чтобы увидеть его здесь.</div>
         </Card>
       ) : (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="text-sm font-medium text-[color:var(--muted)]">Комнаты</div>
-            <div className="flex flex-wrap gap-2">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-medium text-[color:var(--muted)]">Категории</div>
+            <div className="flex max-w-full flex-1 justify-end gap-2 overflow-x-auto pb-1">
               {rooms.map((room) => (
                 <button
                   key={room}
                   type="button"
-                  className={`rt-chip transition-colors ${selectedRoom === room ? 'border-[color:var(--accent)] bg-[color:var(--accent-soft)]' : ''}`}
+                  className={`rt-chip shrink-0 transition-colors ${selectedRoom === room ? 'border-[color:var(--accent)] bg-[color:var(--accent-soft)]' : ''}`}
                   onClick={() => setSelectedRoom(room)}
                 >
                   {room}
@@ -261,7 +236,7 @@ const HomePage = ({ mode = 'user' }: { mode?: 'demo' | 'user' }) => {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
             {visibleDevices.map((device) => (
               <button
                 key={device.deviceKey}
@@ -270,15 +245,15 @@ const HomePage = ({ mode = 'user' }: { mode?: 'demo' | 'user' }) => {
                 onClick={() => navigate(`${backRoute}/device/${device.deviceKey}`, { state: { device } })}
               >
                 <div className="rt-device-icon">{icons[device.kind]}</div>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <div className="flex items-center gap-3">
-                  <span className="text-base font-semibold break-words">{device.name}</span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="truncate text-base font-semibold">{device.name}</span>
                     <span className={`rt-device-status ${device.status === 'online' ? 'rt-device-status-online' : ''}`}>
                       {device.status === 'online' ? 'Онлайн' : 'Оффлайн'}
                     </span>
                   </div>
-                  <div className="text-sm text-[color:var(--muted)]">{device.room}</div>
-                  <div className="flex flex-wrap gap-2 text-xs text-[color:var(--muted)]">
+                  <div className="mt-1 text-sm text-[color:var(--muted)]">{device.room}</div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs">
                     {device.capabilities.slice(0, 3).map((capability) => (
                       <span key={capability} className="rt-chip">
                         {capability}
@@ -287,8 +262,8 @@ const HomePage = ({ mode = 'user' }: { mode?: 'demo' | 'user' }) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-[color:var(--muted)]">Последнее значение</div>
-                  <div className="mt-1 text-2xl font-semibold">
+                  <div className="text-xs text-[color:var(--muted)]">Температура</div>
+                  <div className="mt-1 text-xl font-semibold">
                     {device.lastValue !== undefined ? `${device.lastValue}${device.kind === 'sensor' ? '°' : ''}` : '--'}
                   </div>
                 </div>

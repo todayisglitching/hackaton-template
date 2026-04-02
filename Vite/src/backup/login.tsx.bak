@@ -26,9 +26,9 @@ const LoginPage = () => {
     <div className="rt-auth-shell xl:grid-cols-[0.95fr_1.05fr]">
       <Card className="rt-card overflow-hidden">
         <Card.Content className="p-6 md:p-8">
-          <Chip className="rt-pill text-xs">Вход</Chip>
+          <Chip className="rt-pill text-xs">Sign in</Chip>
           <div className="mt-5">
-            <div className="rt-kicker">USmart</div>
+            <div className="rt-kicker">Smart Home Control</div>
             <h1 className="rt-display mt-3 text-4xl font-semibold">Вход в хаб управления домом.</h1>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-[color:var(--muted)] md:text-base">
               Внутри: список устройств, BLE-подключение, сессии пользователя и заготовка под автоматизации.
@@ -77,7 +77,7 @@ const LoginPage = () => {
       <Card className="rt-card-soft overflow-hidden">
         <Card.Content className="flex h-full flex-col justify-between p-6 md:p-8">
           <div>
-            <div className="rt-kicker">Что внутри</div>
+            <div className="rt-kicker">What you get</div>
             <div className="mt-4 space-y-4">
               <div className="rounded-[20px] border border-[color:var(--border)] bg-white/70 p-4">
                 <div className="text-lg font-semibold">Единая панель устройств</div>
@@ -95,7 +95,7 @@ const LoginPage = () => {
           </div>
 
           <div className="mt-8 rounded-[24px] bg-[color:var(--accent-soft)] p-5 text-sm text-[color:var(--foreground)]">
-            Продуктовый фокус: терминальный BLE и API готовы к масштабной эксплуатации в Ростелеком.
+            Хакатонный фокус: быстро показать ценность универсального протокола, а не только красивый маркетинговый экран.
           </div>
         </Card.Content>
       </Card>

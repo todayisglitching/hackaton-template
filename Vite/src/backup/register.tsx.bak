@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, Chip, Description, Input, Label, TextField, toast } from '@heroui/react';
+import { Button, Card, Checkbox, Chip, Description, Input, Label, Link, TextField, toast } from '@heroui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/auth';
@@ -133,11 +133,13 @@ const RegisterPage = () => {
             </Button>
           </form>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-[color:var(--muted)]">
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-[color:var(--muted)]">
             <button type="button" className="transition-colors hover:text-[color:var(--foreground)]" onClick={() => navigate('/auth/login')}>
               Уже есть аккаунт? Войти
             </button>
-            <span>Документацию API можно посмотреть в `docs/API.md`.</span>
+            <Link href="https://github.com/todayisglitching/hackaton-template" target="_blank" rel="noreferrer">
+              Открыть GitHub
+            </Link>
           </div>
         </Card.Content>
       </Card>

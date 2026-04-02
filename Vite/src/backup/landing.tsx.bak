@@ -3,31 +3,31 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/auth';
 
 const problemPoints = [
-  'Устройства живут в разных приложениях, даже если находятся в одном доме.',
-  'Зарядка интеграторов и поддержка устаревших протоколов отнимают время.',
-  'Открытые API не гарантирую взаимопонимание между BLE, ZigBee и Wi-Fi.',
-  'Контроль без единой панели приводит к путанице и дублирующим действиям.',
+  'Устройства используют ZigBee, BLE, Wi-Fi, Matter и не видят друг друга.',
+  'Legacy BLE-устройства выпадают из новых экосистем и требуют отдельных приложений.',
+  'Закрытые протоколы производителей ломают совместимость и мешают масштабированию.',
+  'Для бизнеса и интеграторов это означает дорогую поддержку и сложные кастомные шлюзы.',
 ];
 
 const roadmap = [
-  'BLE-коннектор через браузер и поиск устройств без установки ПО.',
-  'Нормализация команд в едином внутреннем протоколе USmart.',
-  'Централизованная панель, автоматизации и роли в будущем релизе.',
-  'Интеграции ZigBee, Matter, Wi-Fi с шлюзом и аналитикой.',
+  'BLE-коннектор и подключение прямо из браузера через Web Bluetooth API.',
+  'Единый внутренний протокол USmart для нормализации устройств.',
+  'Единая панель управления, роли, сценарии и централизованный API.',
+  'Следующий этап: ZigBee, Matter, Wi-Fi и полноценные автоматизации.',
 ];
 
 const audience = [
   {
-    title: 'Семьи и DIY',
-    text: 'Объединяют старые и новые устройства без смены экосистемы и учёта каждого производителя.',
+    title: 'DIY и умные дома',
+    text: 'Люди, которые хотят объединить старые и новые девайсы без смены всей экосистемы.',
   },
   {
     title: 'SMB и офисы',
-    text: 'Получают прозрачные сценарии и удалённый контроль без сложных шлюзов.',
+    text: 'Команды, которым нужна недорогая автоматизация помещений и централизованный контроль.',
   },
   {
     title: 'Интеграторы',
-    text: 'Гибкий API и единый протокол позволяют строить кастомные решения быстро.',
+    text: 'Разработчики кастомных решений, которым важен универсальный API и прогнозируемый протокол.',
   },
 ];
 
@@ -39,47 +39,43 @@ const LandingPage = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const stats = [
-    { label: 'Протоколы', value: 'BLE + REST' },
-    { label: 'Сбор данных', value: '4 источника' },
-    { label: 'Готовность', value: 'Поддерживается на фронте' },
-  ];
-
   return (
     <div className="space-y-24">
       <section className="rt-hero grid gap-10 xl:grid-cols-[1.05fr_0.95fr] xl:items-center">
         <div className="space-y-8 rt-animate-up rt-delay-1">
-          <Chip className="rt-pill text-xs">Ростелеком · USmart Platform</Chip>
+          <Chip className="rt-pill text-xs">Ростелеком x Smart Home x Hackathon MVP</Chip>
 
           <div className="space-y-5">
-            <div className="rt-kicker rt-animate-up rt-delay-2">Universal Smart Home</div>
-            <h1 className="rt-page-title max-w-4xl rt-animate-up rt-delay-3">
-              USmart собирает BLE, API и сценарии в одном интерфейсе управления домом и офисом.
-            </h1>
+            <div className="rt-kicker rt-animate-up rt-delay-2">Universal Smart Home Protocol</div>
+            <h1 className="rt-page-title max-w-4xl rt-animate-up rt-delay-3">USmart объединяет BLE, старые устройства и единый интерфейс управления домом.</h1>
             <p className="max-w-2xl text-base leading-relaxed text-[color:var(--muted)] md:text-lg rt-animate-up rt-delay-4">
-              Платформа унифицирует устройства и протоколы: BLE-подключение прямо из браузера, нормализованный API и мониторинг сессий для каждого пользователя.
+              Команда #BigBrains делает платформу, которая превращает разрозненные протоколы в понятный пользовательский опыт.
+              На хакатоне мы довели до рабочего состояния BLE и заложили основу для ZigBee, Matter и Wi-Fi.
             </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center rt-animate-up rt-delay-5">
             <Button className="rt-btn rt-btn-primary" onClick={() => navigate('/demo')}>
-              Попробовать демо
+              Открыть демо
             </Button>
-            <Button
-              className="rt-btn rt-btn-secondary"
-              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-            >
+            <Button className="rt-btn rt-btn-secondary" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}>
               Смотреть сценарий
             </Button>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            {stats.map((item, index) => (
-              <div key={item.label} className={`rt-stat rt-animate-up rt-delay-${index + 3}`}>
-                <div className="text-sm text-[color:var(--muted)]">{item.label}</div>
-                <div className="mt-2 text-2xl font-semibold">{item.value}</div>
-              </div>
-            ))}
+            <div className="rt-stat rt-animate-up rt-delay-3">
+              <div className="text-sm text-[color:var(--muted)]">Протокол</div>
+              <div className="mt-2 text-2xl font-semibold">1 UI для всех</div>
+            </div>
+            <div className="rt-stat rt-animate-up rt-delay-4">
+              <div className="text-sm text-[color:var(--muted)]">Текущий фокус</div>
+              <div className="mt-2 text-2xl font-semibold">BLE + Web</div>
+            </div>
+            <div className="rt-stat rt-animate-up rt-delay-5">
+              <div className="text-sm text-[color:var(--muted)]">Скорость MVP</div>
+              <div className="mt-2 text-2xl font-semibold">до 5 минут</div>
+            </div>
           </div>
         </div>
 
@@ -90,27 +86,27 @@ const LandingPage = () => {
                 <div className="text-sm text-[color:var(--muted)]">USmart Hub</div>
                 <div className="mt-1 text-3xl font-semibold">Станция управления</div>
               </div>
-              <Chip className="rt-pill text-xs">Живой режим</Chip>
+              <Chip className="rt-pill text-xs">Live prototype</Chip>
             </div>
 
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 grid gap-4">
               <div className="rounded-[20px] border border-[color:var(--border)] bg-white/70 p-4 rt-animate-up rt-delay-3">
                 <div className="text-sm text-[color:var(--muted)]">Сейчас в MVP</div>
-                <div className="mt-2 text-xl font-semibold">BLE-подключение и единая панель устройств.</div>
+                <div className="mt-2 text-xl font-semibold">Подключение BLE и единая панель устройств</div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-[20px] border border-[color:var(--border)] bg-white/70 p-4 rt-animate-up rt-delay-4">
                   <div className="text-sm text-[color:var(--muted)]">Протоколы</div>
-                  <div className="mt-2 text-xl font-semibold">BLE сейчас, Matter и Wi-Fi далее</div>
+                  <div className="mt-2 text-xl font-semibold">BLE сейчас, Matter далее</div>
                 </div>
                 <div className="rounded-[20px] border border-[color:var(--border)] bg-white/70 p-4 rt-animate-up rt-delay-5">
                   <div className="text-sm text-[color:var(--muted)]">API</div>
-                  <div className="mt-2 text-xl font-semibold">REST + JWT + сессии</div>
+                  <div className="mt-2 text-xl font-semibold">REST + сессии + девайсы</div>
                 </div>
               </div>
               <div className="rounded-[24px] bg-[linear-gradient(135deg,rgba(255,79,18,0.95),rgba(255,135,34,0.85))] p-5 text-white shadow-[0_24px_48px_rgba(255,79,18,0.25)] rt-animate-up rt-delay-5">
                 <div className="text-sm text-white/80">Ценность</div>
-                <div className="mt-2 text-2xl font-semibold">Один интерфейс вместо десятка несовместимых приложений.</div>
+                <div className="mt-2 text-2xl font-semibold">Один интерфейс вместо набора несовместимых приложений</div>
               </div>
             </div>
           </Card.Content>
@@ -121,9 +117,9 @@ const LandingPage = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <div className="rt-kicker">Problem</div>
-            <h2 className="rt-display mt-3 text-4xl font-semibold">Умный дом не должен быть хаотичным.</h2>
+            <h2 className="rt-display mt-3 text-4xl font-semibold">Рынок умного дома слишком фрагментирован.</h2>
           </div>
-          <Chip className="rt-pill text-xs">Нет единого стандарта</Chip>
+          <Chip className="rt-pill text-xs">Нет единого стандарта взаимодействия</Chip>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {problemPoints.map((item, index) => (
@@ -139,17 +135,15 @@ const LandingPage = () => {
           <Card.Content className="grid gap-10 p-6 md:p-10 xl:grid-cols-[0.9fr_1.1fr] xl:items-center">
             <div className="rt-animate-slide-left rt-delay-2">
               <div className="rt-kicker">Solution</div>
-              <h2 className="rt-display mt-4 text-4xl font-semibold">Цепочка: адаптеры, нормализация, панель управления.</h2>
+              <h2 className="rt-display mt-4 text-4xl font-semibold">Внутренний протокол USmart и адаптеры для разных стандартов.</h2>
               <p className="mt-4 text-sm leading-relaxed text-[color:var(--muted)] md:text-base">
-                Мы приводим команды и события к общему формату USmart, чтобы интерфейс или API интерпретировали устройство одинаково.
+                Мы нормализуем команды, статусы и свойства устройств в одном внутреннем формате. Пользователь получает одну панель,
+                а интегратор — единый API без зависимости от производителя.
               </p>
             </div>
             <div className="grid gap-4 text-sm">
               {roadmap.map((item, index) => (
-                <div
-                  key={item}
-                  className={`flex items-start gap-4 rounded-[22px] border border-[color:var(--border)] bg-white/70 px-5 py-4 rt-animate-up rt-delay-${index + 2}`}
-                >
+                <div key={item} className={`flex items-start gap-4 rounded-[22px] border border-[color:var(--border)] bg-white/70 px-5 py-4 rt-animate-up rt-delay-${index + 2}`}>
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--accent)] text-sm font-semibold text-white">
                     0{index + 1}
                   </div>
@@ -164,7 +158,7 @@ const LandingPage = () => {
       <section id="audience" className="space-y-8 rt-animate-up rt-delay-2">
         <div>
           <div className="rt-kicker">Audience</div>
-          <h2 className="rt-display mt-3 text-4xl font-semibold">Для кого USmart уже работает?</h2>
+          <h2 className="rt-display mt-3 text-4xl font-semibold">Кому нужен USmart</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           {audience.map((item, index) => (
@@ -182,31 +176,31 @@ const LandingPage = () => {
         <Card className="rt-card rt-animate-slide-left rt-delay-2">
           <Card.Content className="p-6 md:p-8">
             <div className="rt-kicker">Stack</div>
-            <h2 className="rt-display mt-3 text-3xl font-semibold">Современный стек с рабочим BLE-слоем.</h2>
+            <h2 className="rt-display mt-3 text-3xl font-semibold">Современный веб-стек с реальным BLE-интеграционным слоем.</h2>
             <div className="mt-6 grid gap-4 text-sm text-[color:var(--muted)] sm:grid-cols-2">
               <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-3">Vite + React + TypeScript + HeroUI</div>
-              <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-4">ASP.NET + EF Core + NoSQL</div>
-              <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-4">JWT, refresh tokens, сессии</div>
-              <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-5">Web Bluetooth в Chromium</div>
+              <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-4">ASP.NET + EF Core + кастомная NoSQL DB</div>
+              <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-4">JWT, refresh tokens, session management</div>
+              <div className="rounded-[20px] border border-[color:var(--border)] p-4 rt-animate-up rt-delay-5">Web Bluetooth API в Chromium-браузерах</div>
             </div>
           </Card.Content>
         </Card>
         <Card className="rt-card-soft rt-animate-slide-right rt-delay-3">
           <Card.Content className="p-6 md:p-8">
             <div className="rt-kicker">Business</div>
-            <h2 className="rt-display mt-3 text-3xl font-semibold">Коммерческий путь: хаб, подписка, API.</h2>
+            <h2 className="rt-display mt-3 text-3xl font-semibold">Монетизация через хаб, подписку и B2B API.</h2>
             <div className="mt-6 space-y-4 text-sm text-[color:var(--muted)]">
               <div>
                 <div className="font-semibold text-[color:var(--foreground)]">Оборудование</div>
-                Станция USmart объединяет BLE, ZigBee и Wi-Fi-сети в один протокол.
+                Станция USmart и стартовые наборы для запуска сценариев дома и в офисе.
               </div>
               <div>
-                <div className="font-semibold text-[color:var(--foreground)]">Сервисы</div>
-                Подписка открывает удалённый доступ, аналитику и расширенные сценарии.
+                <div className="font-semibold text-[color:var(--foreground)]">Подписка</div>
+                Расширенные сценарии, удалённый доступ и автоматизации для активных пользователей.
               </div>
               <div>
-                <div className="font-semibold text-[color:var(--foreground)]">Интеграции</div>
-                API позволяет создавать кастомные решения для B2B-клиентов.
+                <div className="font-semibold text-[color:var(--foreground)]">Интеграторы</div>
+                Лицензирование API и кастомные проекты для B2B-сегмента.
               </div>
             </div>
           </Card.Content>
@@ -218,13 +212,13 @@ const LandingPage = () => {
           <Card.Content className="grid gap-8 p-6 md:p-10 xl:grid-cols-[1fr_auto] xl:items-center">
             <div className="rt-animate-slide-left rt-delay-2">
               <div className="rt-kicker">Demo</div>
-              <h2 className="rt-display mt-3 text-4xl font-semibold">Живое демо без регистрации.</h2>
+              <h2 className="rt-display mt-3 text-4xl font-semibold">Показываем живой MVP: публичный demo dashboard, BLE-подключение и отдельный кабинет пользователя.</h2>
               <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[color:var(--muted)] md:text-base">
-                Страница позволяет подключить BLE-чайник прямо из браузера и посмотреть панель устройств в режиме просмотра.
+                Для демо вход не нужен: можно сразу открыть открытый dashboard. Авторизация теперь живёт отдельно для реального пользовательского кабинета.
               </p>
             </div>
             <Button className="rt-btn rt-btn-primary rt-animate-up rt-delay-4" onClick={() => navigate('/demo')}>
-              Открыть демо
+              Перейти в демо
             </Button>
           </Card.Content>
         </Card>

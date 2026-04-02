@@ -1,27 +1,43 @@
 import type { ReactNode } from 'react';
-import { useAuth } from '../hooks/auth';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/auth';
 
 interface RouteProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
-export const ProtectedRoute = ({ children }: RouteProps) => {
-    const { token } = useAuth();
+function RouteLoader() {
+  return (
+    <div className="rt-card flex min-h-[320px] items-center justify-center p-8 text-sm text-[color:var(--muted)]">
+      Проверяем сессию...
+    </div>
+  );
+}
 
-    if (!token) {
-        return <Navigate to="/auth/login" replace />;
-    }
+export function ProtectedRoute({ children }: RouteProps) {
+  const { isAuthenticated, isLoading } = useAuth();
 
-    return children;
-};
+  if (isLoading) {
+    return <RouteLoader />;
+  }
 
-export const GuestRoute = ({ children }: RouteProps) => {
-    const { token } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
 
-    if (token) {
-        return <Navigate to="/dashboard" replace />;
-    }
+  return children;
+}
 
-    return children;
-};
+export function GuestRoute({ children }: RouteProps) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <RouteLoader />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
